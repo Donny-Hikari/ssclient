@@ -1,0 +1,82 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          ssclient
+# Required-Start:    
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Shadowsocks Client (and polipo)
+# Description:       An handmake script to control shadowsocks
+#                    client and polipo.
+### END INIT INFO
+
+# Author: Donny <donny.hikari@gmail.com>
+
+SHADOWSOCKS_PORT=1080
+POLIPO_PORT=1081
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+
+kill_app_in_port()
+{
+	app_in_port=`sudo netstat -tlnp | grep :$1`
+	IFS=' ' read -a array <<<"$app_in_port"
+	portnum=`expr "${array[6]}" : "\(.*\)/"`
+	log_daemon_msg "Killing ${array[6]} ..."
+	kill $portnum
+}
+
+do_start()
+{
+	log_daemon_msg "Starting supervisor ..."
+	sudo supervisord
+	sudo supervisorctl reload
+	#service supervisorctl restart
+	#sudo supervisorctl reload
+	#supervisorctl start shadowsocks
+	#supervisorctl start polipo
+	#tail /var/log/supervisor/polipo-stderr.log
+}
+
+do_stop()
+{
+	sudo supervisorctl stop all
+	kill_app_in_port $POLIPO_PORT
+	kill_app_in_port $SHADOWSOCKS_PORT
+}
+
+do_status()
+{
+	#log_daemon_msg "Port State:\n`sudo netstat -tlnp | grep :108`"
+	log_daemon_msg "Polipo Port State:\n`sudo netstat -tlnp | grep :$POLIPO_PORT`"
+	log_daemon_msg "Shadowsocks Port State:\n`sudo netstat -tlnp | grep :$SHADOWSOCKS_PORT`"
+}
+
+case "$1" in
+  start)
+	do_start
+	;;
+  stop)
+	do_stop
+	;;
+  restart|reload|force-reload)
+	do_stop
+	do_start
+	;;
+  status|state)
+	do_status
+	;;
+  *|"")
+	echo "Usage: $0 [start|stop|status|restart]" >&2
+	exit 3
+	;;
+esac
+
+:
