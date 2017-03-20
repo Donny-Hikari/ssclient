@@ -1,4 +1,4 @@
-# ssclient
+# Introduction
 This is a script service which will start shadowsocks and polipo automatically.
 
 # Install
@@ -14,8 +14,8 @@ sudo chmod a+x /etc/init.d/
 Change the following variable to the ports you want.
 
 ```bash
-SHADOWSOCKS_PORT=1080	#The port used by shadowsocks
-POLIPO_PORT=1081		#The port used by polipo
+SHADOWSOCKS_PORT=108   #The port used by shadowsocks
+POLIPO_PORT=1081       #The port used by polipo
 ```
 
 Notice that if you edit the script after you copy it to /etc/init.d/ , a permission issue may occur. It's recommended to edit the script before copy it to /etc/init.d/ . If you want to edit the script from /etc/init.d/ , run the following command to grand the permission.
@@ -34,8 +34,10 @@ sudo update-rc.d ssclient defaults
 
 # Supported Operation
 + General service operation
-+ sudo service ssclient state
-	The port state of polipo and shadowsocks will be printed.
++ Use the following command to check the state of the ports:
+```bash
+sudo service ssclient state
+```
 
 # Author
 [![Donny](https://avatars.githubusercontent.com/u/22200374?v=3&s=150 "Donny")](https://github.com/Donny-Hikari)

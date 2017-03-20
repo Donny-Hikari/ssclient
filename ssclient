@@ -12,6 +12,7 @@
 ### END INIT INFO
 
 # Author: Donny <donny.hikari@gmail.com>
+# Github: https://github.com/Donny-Hikari/ssclient
 
 SHADOWSOCKS_PORT=1080
 POLIPO_PORT=1081
