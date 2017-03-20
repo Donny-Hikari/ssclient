@@ -16,6 +16,9 @@
 
 SHADOWSOCKS_PORT=1080
 POLIPO_PORT=1081
+WITH_SUPERVISOR=false
+SHADOWSOCKS_CONFIG_FILE=/etc/shadowsocks/config.json
+POLIPO_CONFIG_FILE=/etc/polipo/config
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
@@ -24,7 +27,7 @@ POLIPO_PORT=1081
 # Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
 . /lib/lsb/init-functions
 
-
+# Kill app in a current port
 kill_app_in_port()
 {
 	app_in_port=`sudo netstat -tlnp | grep :$1`
@@ -34,11 +37,24 @@ kill_app_in_port()
 	kill $portnum
 }
 
+
 do_start()
 {
-	log_daemon_msg "Starting supervisor ..."
-	sudo supervisord
-	sudo supervisorctl reload
+	if WITH_SUPERVISOR; then
+		# With supervisor installed and configured,
+		# it's supposed to start shadowsocks and polipo automatically.
+		log_daemon_msg "Starting supervisor ..."
+		sudo supervisord
+		sudo supervisorctl reload
+	else
+		# If supervisor is not installed,
+		# we will start shadowsocks and polipo with config file.
+		log_daemon_msg "Starting shadowsocks ..."
+		sslocal -c $SHADOWSOCKS_CONFIG_FILE
+		log_daemon_msg "Starting shadowsocks ..."
+		polipo -c $POLIPO_CONFIG_FILE
+		sudo 
+	fi
 	#service supervisorctl restart
 	#sudo supervisorctl reload
 	#supervisorctl start shadowsocks
@@ -48,14 +64,16 @@ do_start()
 
 do_stop()
 {
-	sudo supervisorctl stop all
+	if WITH_SUPERVISOR; then
+		# Stop supervisor first to prevent auto-restart.
+		sudo supervisorctl stop all
+	fi
 	kill_app_in_port $POLIPO_PORT
 	kill_app_in_port $SHADOWSOCKS_PORT
 }
 
 do_status()
 {
-	#log_daemon_msg "Port State:\n`sudo netstat -tlnp | grep :108`"
 	log_daemon_msg "Polipo Port State:\n`sudo netstat -tlnp | grep :$POLIPO_PORT`"
 	log_daemon_msg "Shadowsocks Port State:\n`sudo netstat -tlnp | grep :$SHADOWSOCKS_PORT`"
 }
